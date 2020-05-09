@@ -3,8 +3,11 @@ from flask import Flask
 from flask import request
 from utils.kafkahelper import KafkaConnection
 from threading import Thread
+from flask_cors import CORS
 
 app = Flask(__name__)
+
+CORS(app)
 
 STATUS = 'READY'
 
