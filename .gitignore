@@ -83,3 +83,4 @@ sketch
 venv
 .idea
 *.pyc
+scripts/
