@@ -34,8 +34,8 @@ def create_spark_session():
 # ml pipeline
 def ml_pipeline(json_data):
     spark = create_spark_session()
-    df = spark.read.json(json_data)
-    data = df.select('url', 'text').where(df['text'] != '')
+    df = spark.sparkContext.parallelize([json_data]).toDF()
+    data = df.select('url', 'content').where(df['content'] != '')
 
     # handling Nonetype url column
     if data.select('url').head() is None:
@@ -45,11 +45,11 @@ def ml_pipeline(json_data):
         url = data.select('url').head()['url']
 
     # handling Nonetype text column
-    if data.select('text').head() is None:
+    if data.select('content').head() is None:
         text_sentiment = ""
         return [], [], url, 'neutral'
     else:
-        text_sentiment = data.select('text').head()['text']
+        text_sentiment = data.select('content').head()['content']
     text_sentiment = text_sentiment.strip()
 
     # handling empty text field
@@ -64,7 +64,7 @@ def ml_pipeline(json_data):
     max_iterations = 100
 
     # pipeline
-    tokenizer = Tokenizer(inputCol="text", outputCol="tokenized")
+    tokenizer = Tokenizer(inputCol="content", outputCol="tokenized")
     cleaned = StopWordsRemover(inputCol="tokenized", outputCol="cleaned")
     tf = CountVectorizer(inputCol="cleaned", outputCol="raw_features", vocabSize=10, minDF=1.0)
     idf = IDF(inputCol="raw_features", outputCol="features")
