@@ -37,8 +37,26 @@ def ml_pipeline(jsondata):
     df = spark.read.json(jsondata)
     data = df.select('url', 'text').where(df['text'] != '')
 
+    # handling Nonetype url column
+    if data.select('url').head() == None:
+        url = ""
+        return [], [], url, 'neutral'
+    else:
+        url = data.select('url').head()['url']
+
+    # handling Nonetype text column
+    if data.select('text').head() == None:
+        text_sentiment = ""
+        return [], [], url, 'neutral'
+    else:
+        text_sentiment = data.select('text').head()['text']
+    text_sentiment = text_sentiment.strip()
+
+    # handling empty text field
+    if (not text_sentiment):
+        return [], [], url, 'neutral'
+
     # sentiment analysis
-    text_sentiment = data.select('text').head()['text']
     sentiment_fact = sentiment_analysis(text_sentiment)
 
     # hyper-parameters
@@ -57,7 +75,6 @@ def ml_pipeline(jsondata):
     model = pipeline.fit(data)
     topics = model.stages[-1].describeTopics(1)
     vocab = model.stages[2].vocabulary
-    url = data.select('url').head()['url']
     return topics, vocab, url, sentiment_fact
 
 
@@ -65,7 +82,4 @@ def ml_pipeline(jsondata):
 def write_to_json(jsondata):
     topics, vocab, url, sentiment_fact = ml_pipeline(jsondata)
     detail = {'url': url, 'vocab': vocab, 'sentiment': sentiment_fact}
-    ##ignore the 2 comments below since that was just test to dump json code into json file(only reqd if gotta create a json file)
-    # with open('file1.json', 'w') as filejson:
-    #    json.dump(detail, filejson)
     return detail
