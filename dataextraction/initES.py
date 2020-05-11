@@ -14,7 +14,7 @@ global es
 es = elasticsearch.Elasticsearch([host])
 print(es.info())
 
-def processDir(dir,indexName):
+def processDir(dir,indexName,verbose=False):
     files = os.listdir(dir)
     for file in files:
         file = os.path.join(dir,file)
@@ -29,7 +29,8 @@ def processDir(dir,indexName):
                 item["doc"] = body
                 yield item
             except:
-                print("Error in: ",file)
+                if verbose:
+                    print("Error in: ",file)
                 continue
 
 def createIndex(indexName = "data"):
