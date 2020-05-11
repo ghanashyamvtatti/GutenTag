@@ -1,37 +1,44 @@
-import urllib3
 import sys
-import json
+
+from elasticsearch import Elasticsearch
+
 from utils.kafkahelper import KafkaConnection
 
 PORT = 9200
 INDEXNAME = "data"
-host = "localhost:%s"%PORT
+host = "localhost:%s" % PORT
+es = Elasticsearch([host])
 
 
-def getRawData(query,count=5):
-    http = urllib3.PoolManager()
-    url = "http://%s/data/_search?q=%s&size=%s"%(host,query,str(count))
-    response = http.request(method="GET",url=url).data
-    data = json.loads(response.decode('utf-8'))
-    items = data["hits"]["hits"]
+def get_raw_data(query):
+    items = []
+    offset = 0
+    limit = 100
+    # By default, the limit is 10
+    while True:
+        response = es.search(index=INDEXNAME, q=query, size=limit, from_=offset)
+        data = response['hits']['hits']
+        if len(data) == 0:
+            break
+        items += data
+        offset += limit
     return items
 
-def pushData(data):
+
+def push_data(data):
     conn = KafkaConnection()
     for item in data:
         conn.send_data(item["_source"]["doc"])
 
-def main(args):
-    if len(args)< 2:
-        sys.exit("Incorrect number of arguments")
-    
-    data = None
-    if len(args) == 3:
-        data = getRawData(args[1],args[2])
-    else:
-        data = getRawData(args[1])
 
-    pushData(data)
+def main(args):
+    if len(args) < 2:
+        sys.exit("Incorrect number of arguments")
+
+    data = get_raw_data(args[1])
+
+    push_data(data)
+
 
 if __name__ == "__main__":
     main(sys.argv)

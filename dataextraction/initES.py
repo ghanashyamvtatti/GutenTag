@@ -1,67 +1,68 @@
-import elasticsearch
-from elasticsearch.helpers import bulk, scan
-import os
 import json
+import os
 import sys
 
-dataDir = "G:\Rochak\Downloads\Data"
+from elasticsearch import Elasticsearch
+from elasticsearch.helpers import bulk
+
+data_dir = "../data/717_20170904123036"
 PORT = 9200
 INDEXNAME = "data"
 
-DIRS = [os.path.join(dataDir, o) for o in os.listdir(dataDir) if os.path.isdir(os.path.join(dataDir,o))]
-host = "Localhost:%s"%PORT
-global es
-es = elasticsearch.Elasticsearch([host])
+DIRS = [os.path.join(data_dir, o) for o in os.listdir(data_dir) if os.path.isdir(os.path.join(data_dir, o))]
+host = "Localhost:%s" % PORT
+global esW
+es = Elasticsearch([host])
 print(es.info())
 
-def processDir(dir,indexName,verbose=False):
+
+def process_dir(dir, index_name, verbose=False):
     files = os.listdir(dir)
     for file in files:
-        file = os.path.join(dir,file)
+        file = os.path.join(dir, file)
         with open(file) as f:
             try:
                 data = json.load(f)
-                body = {}
-                body['url'] = data["url"]
-                body['content'] = data["text"]
-                item = {}
-                item["_index"] = indexName
-                item["doc"] = body
+                body = {'url': data["url"], 'content': data["text"]}
+                item = {"_index": index_name, "doc": body}
                 yield item
             except:
                 if verbose:
-                    print("Error in: ",file)
+                    print("Error in: ", file)
                 continue
 
-def createIndex(indexName = "data"):
-    item={"mappings": {
-                        "properties": {
-                            "url": {"type": "text", "index": False},
-                            "content": {"type": "text"},
-                                        }
-                                }
+
+def create_index(index_name="data"):
+    item = {"mappings": {
+        "properties": {
+            "url": {"type": "text", "index": False},
+            "content": {"type": "text"},
+        }
+    }
     }
     try:
-        response = es.indices.create(index=indexName,body=item)
+        response = es.indices.create(index=index_name, body=item)
         print(response)
-        if response["acknowledged"]==True:
-            print("Index %s created successfully"%indexName)
+        if response["acknowledged"]:
+            print("Index %s created successfully" % index_name)
             return False
         else:
-            print("Error in creating Index %s"%indexName)
+            print("Error in creating Index %s" % index_name)
             return True
     except Exception as e:
+        print("Error: ", e)
         return True
-        print("Error: ",e)
+
 
 def main():
-    err = createIndex(INDEXNAME)
+    err = create_index(INDEXNAME)
     if err:
         sys.exit("Check index creation errors")
     for dir in DIRS:
-        print("Indexing: ",dir)
-        bulk(es,processDir(dir,INDEXNAME))
+        print("Indexing: ", dir)
+        bulk(es, process_dir(dir, INDEXNAME))
     print("Initialization completed")
+
 
 if __name__ == "__main__":
     main()
