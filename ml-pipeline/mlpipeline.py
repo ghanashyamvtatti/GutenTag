@@ -37,8 +37,20 @@ def ml_pipeline(jsondata):
     spark = create_spark_session()
     df = spark.read.json(jsondata)
     data = df.select('url', 'text').where(df['text'] != '')
-    url = data.select('url').head()['url']
-    text_sentiment = data.select('text').head()['text']
+
+    #handling Nonetype url column
+    if data.select('url').head() == None:
+        url = ""
+        return [], [], url, 'neutral'
+    else:
+        url = data.select('url').head()['url']
+
+    #handling Nonetype text column
+    if data.select('text').head() == None:
+        text_sentiment = ""
+        return [], [], url, 'neutral'
+    else:
+        text_sentiment = data.select('text').head()['text']
     text_sentiment = text_sentiment.strip()
 
     #handling empty text field
