@@ -23,7 +23,7 @@ def run_kafka():
         id += 1
 
         # handling url is empty or vocab is empty(in this case do not dump into es)
-        if ((not detail['url']) or (not detail['vocab'])):
+        if (not detail['url']) or (not detail['vocab']):
             continue
 
         # insert json into elasticsearch
@@ -31,12 +31,12 @@ def run_kafka():
         print(store)
 
         # just to retrieve data from es
-        retrieve = es.get(index=index, doc_type=doc_type, id=id)
-        print(retrieve['_source'])
+        # retrieve = es.get(index=index, doc_type=doc_type, id=id)
+        # print(retrieve['_source'])
 
         # deleting the document(this statement can be deleted later)
-        erase = es.delete(index=index, doc_type=doc_type, id=id)
-        print(erase['result'])
+        #  = es.delete(index=index, doc_type=doc_type, id=id)
+        # print(erase['result'])
 
 
 if __name__ == "__main__":

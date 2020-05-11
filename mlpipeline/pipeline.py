@@ -32,20 +32,20 @@ def create_spark_session():
 
 
 # ml pipeline
-def ml_pipeline(jsondata):
+def ml_pipeline(json_data):
     spark = create_spark_session()
-    df = spark.read.json(jsondata)
+    df = spark.read.json(json_data)
     data = df.select('url', 'text').where(df['text'] != '')
 
     # handling Nonetype url column
-    if data.select('url').head() == None:
+    if data.select('url').head() is None:
         url = ""
         return [], [], url, 'neutral'
     else:
         url = data.select('url').head()['url']
 
     # handling Nonetype text column
-    if data.select('text').head() == None:
+    if data.select('text').head() is None:
         text_sentiment = ""
         return [], [], url, 'neutral'
     else:
@@ -53,7 +53,7 @@ def ml_pipeline(jsondata):
     text_sentiment = text_sentiment.strip()
 
     # handling empty text field
-    if (not text_sentiment):
+    if not text_sentiment:
         return [], [], url, 'neutral'
 
     # sentiment analysis
@@ -81,8 +81,9 @@ def ml_pipeline(jsondata):
     vocab_final = list(set(vocab_fin))
     return topics, vocab_final, url, sentiment_fact
 
+
 # write into json
-def write_to_json(jsondata):
-    topics, vocab, url, sentiment_fact = ml_pipeline(jsondata)
+def write_to_json(json_data):
+    topics, vocab, url, sentiment_fact = ml_pipeline(json_data)
     detail = {'url': url, 'vocab': vocab, 'sentiment': sentiment_fact}
     return detail
