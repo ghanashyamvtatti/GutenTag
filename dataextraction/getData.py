@@ -5,12 +5,12 @@ from utils.kafkahelper import KafkaConnection
 
 PORT = 9200
 INDEXNAME = "data"
-host = "Localhost:%s"%PORT
+host = "localhost:%s"%PORT
 
 
 def getRawData(query,count=5):
     http = urllib3.PoolManager()
-    url = "http://localhost:9200/data/_search?q=%s&size=%s"%(query,str(count))
+    url = "http://%s/data/_search?q=%s&size=%s"%(host,query,str(count))
     response = http.request(method="GET",url=url).data
     data = json.loads(response.decode('utf-8'))
     items = data["hits"]["hits"]
