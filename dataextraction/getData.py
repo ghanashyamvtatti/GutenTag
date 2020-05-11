@@ -19,7 +19,7 @@ def getRawData(query,count=5):
 def pushData(data):
     conn = KafkaConnection()
     for item in data:
-        conn.send_data(data)
+        conn.send_data(item["_source"]["doc"])
 
 def main(args):
     if len(args)< 2:
