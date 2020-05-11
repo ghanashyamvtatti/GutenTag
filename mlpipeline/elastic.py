@@ -2,7 +2,7 @@
 # coding: utf-8
 
 
-import pipeline
+from mlpipeline import pipeline
 from elasticsearch import Elasticsearch
 from utils.kafkahelper import KafkaConnection
 
