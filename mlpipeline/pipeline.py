@@ -75,8 +75,11 @@ def ml_pipeline(jsondata):
     model = pipeline.fit(data)
     topics = model.stages[-1].describeTopics(1)
     vocab = model.stages[2].vocabulary
-    return topics, vocab, url, sentiment_fact
 
+    # remove duplicates and blank values from vocab
+    vocab_fin = [w for w in vocab if w.isalpha()]
+    vocab_final = list(set(vocab_fin))
+    return topics, vocab_final, url, sentiment_fact
 
 # write into json
 def write_to_json(jsondata):
