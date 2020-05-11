@@ -1,2 +1,2 @@
-clear_topics.cmd
 docker-compose up -d
+clear_topics.cmd
