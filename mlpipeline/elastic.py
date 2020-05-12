@@ -5,6 +5,11 @@
 from mlpipeline import pipeline
 from elasticsearch import Elasticsearch
 from utils.kafkahelper import KafkaConnection
+import requests
+
+
+def get_status():
+    return requests.get('http://localhost:5000/status').json()
 
 
 def run_kafka():
@@ -18,7 +23,10 @@ def run_kafka():
     index = 'articles'
     doc_type = 'article'
 
+    status_conn = KafkaConnection(topic='status')
+
     for data in conn.get_data():
+        status = get_status()
         detail = pipeline.write_to_json(data)
         id += 1
 
@@ -29,6 +37,12 @@ def run_kafka():
         # insert json into elasticsearch
         store = es.index(index=index, doc_type=doc_type, id=id, body=detail)
         print(store)
+
+        if 'count' in status:
+            status['count'] -= 1
+            if status['count'] == 0:
+                status = {'status': 'READY'}
+            status_conn.send_data(status)
 
         # just to retrieve data from es
         # retrieve = es.get(index=index, doc_type=doc_type, id=id)

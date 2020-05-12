@@ -1,17 +1,20 @@
-from subprocess import run
+from subprocess import Popen
 from flask import Flask
 from flask import request
 from utils.kafkahelper import KafkaConnection
 from threading import Thread
 from flask_cors import CORS
+from elasticsearch import Elasticsearch
 
 app = Flask(__name__)
 
 CORS(app)
 
-STATUS = 'READY'
+STATUS = {'status': 'READY'}
 
 status_conn = KafkaConnection(topic="status")
+
+es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
 
 
 # thread process to update the status
@@ -19,7 +22,7 @@ def status_listener():
     global STATUS
     for data in status_conn.get_data():
         if data is not None:
-            STATUS = data['status']
+            STATUS = data
 
 
 status_thread = Thread(target=status_listener)
@@ -30,32 +33,29 @@ status_thread = Thread(target=status_listener)
 def start_data_extraction():
     global STATUS
     q = request.args['q']
-    proc = run(['echo', q], capture_output=True)
-    return {"message": proc.stdout.strip().decode('utf-8'), "status": STATUS}, 200
+    Popen(['python', '-m', 'dataextraction.getData', q])
+    STATUS['status'] = 'BEGINNING DATA EXTRACTION'
+    return {"message": "started data extraction", "status": STATUS}, 200
 
 
 # Return data from elasticsearch
 @app.route("/results")
 def show_results():
+    q = request.args['q']
     if 'limit' in request.args:
         limit = request.args['limit']
     else:
-        limit = 100
+        limit = 10
 
     if 'offset' in request.args:
         offset = request.args['offset']
     else:
         offset = 0
-    # TODO: Get data from elasticsearch and show to the user
-    data = {"results": [{"url": "https://www.dudurudh.com/2020/04/25/4-minute-miles-chapter-3/",
-                         "tags": ["Seemapuram", "area", "Rambo"], "sentiment": "positive"},
-                        {"url": "https://www.dudurudh.com/2020/04/25/4-minute-miles-chapter-3/",
-                         "tags": ["Seemapuram", "area", "Rambo"], "sentiment": "positive"},
-                        {"url": "https://www.dudurudh.com/2020/04/25/4-minute-miles-chapter-3/",
-                         "tags": ["Seemapuram", "area", "Rambo"], "sentiment": "positive"},
-                        {"url": "https://www.dudurudh.com/2020/04/25/4-minute-miles-chapter-3/",
-                         "tags": ["Seemapuram", "area", "Rambo"], "sentiment": "positive"}]}
-    return data, 200
+    # Get data from elasticsearch and show to the user
+    response = es.search(index='articles', q=q, from_=offset, size=limit)
+    data = response['hits']['hits']
+    data = [x['_source'] for x in data]
+    return {'results': data}, 200
 
 
 @app.route("/status")

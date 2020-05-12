@@ -32,10 +32,13 @@ def push_data(data):
 
 
 def main(args):
+    status_conn = KafkaConnection(topic='status')
+    status_conn.send_data({'status': 'DATA EXTRACTION'})
     if len(args) < 2:
         sys.exit("Incorrect number of arguments")
 
     data = get_raw_data(args[1])
+    status_conn.send_data({'status': 'ML PIPELINE', 'count': len(data)})
 
     push_data(data)
 
