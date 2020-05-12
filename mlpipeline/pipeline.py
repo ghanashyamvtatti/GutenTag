@@ -7,9 +7,36 @@ from pyspark.ml import Pipeline
 from pyspark.ml.clustering import LDA
 from pyspark.ml.feature import StopWordsRemover, CountVectorizer, IDF, Tokenizer
 from pyspark.sql import SparkSession
+import json
 
 nltk.download('vader_lexicon')
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
+
+
+# pyspark creating spark session function
+def create_spark_session():
+    cf = SparkConf()
+    spark = SparkSession.builder.config(conf=cf).getOrCreate()
+    return spark
+
+
+def create_lda_pipeline():
+    # hyper-parameters
+    num_topics = 10
+    max_iterations = 10
+
+    # pipeline
+    tokenizer = Tokenizer(inputCol="content", outputCol="tokenized")
+    cleaned = StopWordsRemover(inputCol="tokenized", outputCol="cleaned")
+    tf = CountVectorizer(inputCol="cleaned", outputCol="raw_features", vocabSize=10, minDF=1.0)
+    idf = IDF(inputCol="raw_features", outputCol="features")
+    lda_model = LDA(featuresCol="features", k=num_topics, maxIter=max_iterations)
+    return Pipeline(stages=[tokenizer, cleaned, tf, idf, lda_model])
+
+
+spark = create_spark_session()
+
+pipeline = create_lda_pipeline()
 
 
 # sentiment analyzer function
@@ -24,55 +51,41 @@ def sentiment_analysis(data):
         return 'neutral'
 
 
-# pyspark creating spark session function
-def create_spark_session():
-    cf = SparkConf()
-    spark = SparkSession.builder.config(conf=cf).getOrCreate()
-    return spark
+def get_df_from_json(json_data):
+    with open('temp.json', 'w') as f:
+        json.dump(json_data, f)
+    return spark.read.json('temp.json')
 
 
 # ml pipeline
-def ml_pipeline(json_data):
-    spark = create_spark_session()
-    df = spark.sparkContext.parallelize([json_data]).toDF()
-    data = df.select('url', 'content').where(df['content'] != '')
-
+def run_ml_pipeline(json_data):
     # handling Nonetype url column
-    if data.select('url').head() is None:
+    if 'url' not in json_data or json_data['url'] is None or json_data['url'].strip() == "":
         url = ""
         return [], [], url, 'neutral'
     else:
-        url = data.select('url').head()['url']
+        url = json_data['url'].strip()
 
     # handling Nonetype text column
-    if data.select('content').head() is None:
-        text_sentiment = ""
+    if 'content' not in json_data or json_data['content'] is None or json_data['content'].strip() == "":
+        content = ""
         return [], [], url, 'neutral'
     else:
-        text_sentiment = data.select('content').head()['content']
-    text_sentiment = text_sentiment.strip()
+        content = json_data['content']
+    content = content.strip()
 
     # handling empty text field
-    if not text_sentiment:
+    if not content:
         return [], [], url, 'neutral'
 
     # sentiment analysis
-    sentiment_fact = sentiment_analysis(text_sentiment)
+    sentiment_fact = sentiment_analysis(content)
 
-    # hyper-parameters
-    num_topics = 10
-    max_iterations = 100
-
-    # pipeline
-    tokenizer = Tokenizer(inputCol="content", outputCol="tokenized")
-    cleaned = StopWordsRemover(inputCol="tokenized", outputCol="cleaned")
-    tf = CountVectorizer(inputCol="cleaned", outputCol="raw_features", vocabSize=10, minDF=1.0)
-    idf = IDF(inputCol="raw_features", outputCol="features")
-    lda_model = LDA(featuresCol="features", k=num_topics, maxIter=max_iterations)
-    pipeline = Pipeline(stages=[tokenizer, cleaned, tf, idf, lda_model])
+    df = get_df_from_json(json_data)
 
     # clustering
-    model = pipeline.fit(data)
+    model = pipeline.fit(df)
+    print("Fit the model successfully")
     topics = model.stages[-1].describeTopics(1)
     vocab = model.stages[2].vocabulary
 
@@ -84,6 +97,6 @@ def ml_pipeline(json_data):
 
 # write into json
 def write_to_json(json_data):
-    topics, vocab, url, sentiment_fact = ml_pipeline(json_data)
+    topics, vocab, url, sentiment_fact = run_ml_pipeline(json_data)
     detail = {'url': url, 'vocab': vocab, 'sentiment': sentiment_fact}
     return detail
