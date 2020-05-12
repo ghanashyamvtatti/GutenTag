@@ -1,4 +1,7 @@
 .App {
-    background: #f0f0f0;
     height: 100%;
+}
+
+.hide {
+    display: none;
 }

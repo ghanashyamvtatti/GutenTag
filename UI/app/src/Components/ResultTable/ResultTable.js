@@ -5,20 +5,12 @@ import "./ResultTable.css";
 export default class ResultTable extends Component {
   constructor(props) {
     super(props);
-    this.state = { data: [] };
+    this.state = { data: props.data };
   }
 
-  async loadRows() {
-    fetch("http://localhost:5000/results").then((res) =>
-      res.json().then((resp) => {
-        this.setState({ data: resp.results });
-      })
-    );
-  }
-
-  componentDidMount() {
-    this.loadRows();
-  }
+  updateData = (data) => {
+    this.setState({ data: data });
+  };
 
   render() {
     const columns = [
@@ -30,8 +22,8 @@ export default class ResultTable extends Component {
       },
       {
         title: "Tags",
-        key: "tags",
-        dataIndex: "tags",
+        key: "vocab",
+        dataIndex: "vocab",
         render: (tags) => (
           <>
             {tags.map((tag) => {
@@ -45,6 +37,21 @@ export default class ResultTable extends Component {
           </>
         ),
       },
+      {
+        title: "sentiment",
+        dataIndex: "sentiment",
+        key: "sentiment",
+        render: (sentiment) => (
+          <>
+            <Tag
+              color={sentiment === "positive" ? "green" : "red"}
+              key={sentiment}
+            >
+              {sentiment.toUpperCase()}
+            </Tag>
+          </>
+        ),
+      },
     ];
     return (
       <div>
@@ -52,6 +59,7 @@ export default class ResultTable extends Component {
           className="result-table"
           columns={columns}
           dataSource={this.state.data}
+          scroll={{ y: 400 }}
         />
       </div>
     );

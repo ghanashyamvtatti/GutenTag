@@ -9,9 +9,10 @@ export default class SearchBar extends Component {
     return (
       <div className="search-bar">
         <Search
-          placeholder="input search text"
-          onSearch={(value) => console.log(value)}
-          enterButton
+          placeholder="input umbrella term for extraction"
+          enterButton="Extract"
+          size="large"
+          onSearch={(value) => this.props.onSearch(value)}
         />
       </div>
     );
