@@ -6,7 +6,7 @@ from threading import Thread
 from flask_cors import CORS
 from elasticsearch import Elasticsearch
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='../UI/app/build', static_url_path='/')
 
 CORS(app)
 
