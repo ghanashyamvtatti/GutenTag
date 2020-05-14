@@ -72,7 +72,7 @@ export default class ExtractPage extends Component {
         <SearchBar onSearch={this.onSearch} />
         <div className="status">
           <h3>Current Status: {this.state.status}</h3>
-          <h3>Remaining Count: {this.state.count}</h3>
+          <h3>Documents left to process: {this.state.count}</h3>
         </div>
         <img src={this.state.img} alt={this.state.status} className="image" />
       </div>
