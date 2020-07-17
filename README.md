@@ -19,3 +19,23 @@ GutenTag is a big-data application that uses LDA and other NLP magic to automati
 * Index the metadata to provide improved search
 
 ## Setup
+
+1. Install the required packages via `pip install -r requirements.txt`
+2. Ensure you have docker installed, and run `scripts\run.cmd` (on Windows) or `scripts\run.sh` (on Mac/Linux)
+3. Run `start.cmd` (on Windows) or `start.sh` (on Mac/Linux)
+4. Open http://localhost:5000/index.html on your browser
+
+## Usage
+
+### Data Extraction:
+
+1. Click ‘Extract’ on the navbar.
+2. Enter the umbrella term and click the ‘Extract’ button.
+3. The process will fetch the raw data from ElasticSearch, run it through the ML
+pipeline, and store the processed data back into another index on ElasticSearch.
+
+### Search:
+
+1. Go to the ‘Search’ page.
+2. Enter the search query and click the search button.
+3. The results will appear in the table.

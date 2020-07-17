@@ -13,7 +13,7 @@ nltk.download('vader_lexicon')
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
 
-# pyspark creating spark session function
+# PySpark creating spark session function
 def create_spark_session():
     cf = SparkConf()
     spark = SparkSession.builder.config(conf=cf).getOrCreate()

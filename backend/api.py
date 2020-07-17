@@ -33,7 +33,7 @@ status_thread = Thread(target=status_listener)
 def start_data_extraction():
     global STATUS
     q = request.args['q']
-    Popen(['python', '-m', 'dataextraction.getData', q])
+    Popen(['python', '-m', 'dataindex.local_data_extractor', q])
     STATUS['status'] = 'BEGINNING DATA EXTRACTION'
     return {"message": "started data extraction", "status": STATUS}, 200
 

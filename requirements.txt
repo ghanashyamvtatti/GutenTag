@@ -8,11 +8,14 @@ idna==2.9
 itsdangerous==1.1.0
 Jinja2==2.11.2
 joblib==0.14.1
+JPype1==1.0.1
 kafka-python==2.0.1
+kafka-tools==0.1.9
 kazoo==2.5.0
 MarkupSafe==1.1.1
 nltk==3.5
 numpy==1.18.4
+pex==2.1.13
 py4j==0.10.7
 pykafka==2.8.0
 pyspark==2.4.5
@@ -21,5 +24,6 @@ requests==2.23.0
 six==1.14.0
 tabulate==0.8.7
 tqdm==4.46.0
+typing-extensions==3.7.4.2
 urllib3==1.25.9
 Werkzeug==1.0.1
