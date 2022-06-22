@@ -14,7 +14,7 @@ kafka-tools==0.1.9
 kazoo==2.5.0
 MarkupSafe==1.1.1
 nltk==3.5
-numpy==1.18.4
+numpy==1.22.0
 pex==2.1.13
 py4j==0.10.7
 pykafka==2.8.0
