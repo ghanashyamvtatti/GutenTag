@@ -18,7 +18,7 @@ numpy==1.18.4
 pex==2.1.13
 py4j==0.10.7
 pykafka==2.8.0
-pyspark==2.4.5
+pyspark==3.2.2
 regex==2020.5.7
 requests==2.23.0
 six==1.14.0
